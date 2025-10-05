@@ -7,6 +7,7 @@
 #define MAX_VOOS 100
 #define MAX_ASSENTOS 200
 #define MAX_RESERVAS 300
+// Sugestão de Melhoria: mover constantes como essas para um header separado, como config.h. Isso melhora organização e manutenção.
 
 // Estruturas
 typedef struct {
@@ -17,6 +18,8 @@ typedef struct {
     int fidelidade; 
     int pontosFidelidade;
 } Passageiro;
+// Sugestão de Melhoria: documentar a struct, como (// representa um passageiro do sistema).
+// Sugestão de Melhoria: usar bool para fidelidade em vez de int.
 
 typedef struct {
     int codigo;
@@ -24,6 +27,7 @@ typedef struct {
     char telefone[20];
     char cargo[20]; 
 } Tripulacao;
+// Sugestão de Melhoria: cargo poderia ser um enum (PILOTO, COPILOTO, COMISSARIO). Enum é mais seguro que string.
 
 typedef struct {
     int codigoVoo;
@@ -38,18 +42,21 @@ typedef struct {
     int status; // 1 para ativo, 0 para inativo
     float tarifa;
 } Voo;
+// Sugestão de Melhoria: substituir status por enum { ATIVO, INATIVO } para melhor legibilidade.
 
 typedef struct {
     int numeroAssento;
     int codigoVoo;
     int status; // 1 para ocupado, 0 para livre
 } Assento;
+// Sugestão de Melhoria: status poderia usar enum também { LIVRE, OCUPADO }.
 
 typedef struct {
     int codigoVoo;
     int numeroAssento;
     int codigoPassageiro;
 } Reserva;
+// Sugestão de Melhoria: criar função utilitária para criar reserva em vez de manipular direto struct.
 
 
 int cadastrarPassageiro(Passageiro passageiros[], int *numPassageiros);
@@ -74,6 +81,8 @@ int cadastrarPassageiro(Passageiro passageiros[], int *numPassageiros) {
     Passageiro p;
     printf("\nCodigo do Passageiro: ");
     scanf("%d", &p.codigo);
+    // Sugestão de Melhoria: validar entrada. O scanf pode receber valor inválido.
+    // Sugestão de Melhoria: criar função auxiliar existePassageiro(codigo). Isso evita a duplicação de lógica.
 
     for (int i = 0; i < *numPassageiros; i++) {
         if (passageiros[i].codigo == p.codigo) {
@@ -84,6 +93,7 @@ int cadastrarPassageiro(Passageiro passageiros[], int *numPassageiros) {
 
     printf("Nome: ");
     scanf(" %[^\n]", p.nome);
+    // Sugestão de Melhoria: arriscado o scanf ficar sem limite. Isso pode causar buffer overflow, a melhor opção é usar fgets.
     printf("Endereco: ");
     scanf(" %[^\n]", p.endereco);
     printf("Telefone: ");
@@ -96,6 +106,7 @@ int cadastrarPassageiro(Passageiro passageiros[], int *numPassageiros) {
     printf("\nPassageiro cadastrado com sucesso!\n");
     return 1;
 }
+// Sugestão de Melhoria: separar lógica de entrada e saída (scanf/printf) da lógica de negócio. Poderia aplicar MVC.
 
 
 int cadastrarTripulacao(Tripulacao tripulacao[], int *numTripulacao) {
@@ -118,6 +129,7 @@ int cadastrarTripulacao(Tripulacao tripulacao[], int *numTripulacao) {
 
     printf("Nome: ");
     scanf(" %[^\n]", t.nome);
+    // Sugestão de Melhoria: arriscado o scanf ficar sem limite. Isso pode causar buffer overflow, a melhor opção é usar fgets.
     printf("Telefone: ");
     scanf(" %[^\n]", t.telefone);
 
@@ -138,6 +150,7 @@ int cadastrarTripulacao(Tripulacao tripulacao[], int *numTripulacao) {
     printf("\nTripulante cadastrado com sucesso!\n");
     return 1;
 }
+// Sugestão de Melhoria: separar lógica de entrada e saída (scanf/printf) da lógica de negócio. Poderia aplicar MVC.
 
 int cadastrarVoo(Voo voos[], int *numVoos, Tripulacao tripulacao[], int numTripulacao) {
     if (*numVoos >= MAX_VOOS) {
@@ -151,6 +164,7 @@ int cadastrarVoo(Voo voos[], int *numVoos, Tripulacao tripulacao[], int numTripu
     }
 
     int temPiloto = 0, temCopiloto = 0;
+    // Sugestão de Melhoria: usar bool em vez de int para flags.
     for (int i = 0; i < numTripulacao; i++) {
         if (strcmp(tripulacao[i].cargo, "piloto") == 0) {
             temPiloto = 1;
@@ -160,6 +174,7 @@ int cadastrarVoo(Voo voos[], int *numVoos, Tripulacao tripulacao[], int numTripu
         }
         if (temPiloto && temCopiloto) break;
     }
+    // Sugestão de Melhoria: lógica repetida. Poderia virar função validarTripulacao().
 
     if (!temPiloto || !temCopiloto) {
         printf("\nNao tem piloto e/ou copiloto cadastrados. Nao foi possivel ativar o voo.\n");
@@ -168,10 +183,12 @@ int cadastrarVoo(Voo voos[], int *numVoos, Tripulacao tripulacao[], int numTripu
 
     Voo v;
     v.codigoVoo = *numVoos + 1;
+    // Sugestão de Melhoria: poderia considerar usar geração automática de ID em função separada.
     printf("\nData (DD/MM/AAAA): ");
     scanf(" %[^\n]", v.data);
     printf("Hora (HH:MM): ");
     scanf(" %[^\n]", v.hora);
+    // Sugestão de Melhoria: validar formato de data e hora antes de salvar.
     printf("Origem: ");
     scanf(" %[^\n]", v.origem);
     printf("Destino: ");
@@ -187,7 +204,7 @@ int cadastrarVoo(Voo voos[], int *numVoos, Tripulacao tripulacao[], int numTripu
     printf("Codigo do Comissário (ou 0 para nenhum): ");
     scanf("%d", &v.codigoComissario);
 
-   
+   // Sugestão de Melhoria: poderia extrair essa validação para função validarCodigoTripulacao.
     int pilotoEncontrado = 0, copilotoEncontrado = 0;
     for (int i = 0; i < numTripulacao; i++) {
         if (tripulacao[i].codigo == v.codigoPiloto && strcmp(tripulacao[i].cargo, "piloto") == 0) {
@@ -209,6 +226,7 @@ int cadastrarVoo(Voo voos[], int *numVoos, Tripulacao tripulacao[], int numTripu
     printf("\nVoo cadastrado e marcado como ativo com sucesso!\n");
     return 1;
 }
+// Sugestão de Melhoria: função muito longa. Poderia refatorar em sub-funções.
 
 
 void cadastrarAssentos(Assento assentos[], int *numAssentos, int codigoVoo) {
@@ -273,6 +291,8 @@ int liberarAssento(Assento assentos[], int numAssentos, Reserva reservas[], int 
     for (int i = 0; i < numAssentos; i++) {
         if (assentos[i].codigoVoo == codigoVoo && assentos[i].numeroAssento == numeroAssento && assentos[i].status == 1) {
             assentos[i].status = 0;
+            // Problema: aqui o assento é liberado, mas a reserva correspondente não é removida.
+            // Sugestão de Melhoria: criar função removerReserva(codigoVoo, numeroAssento).
             printf("\nAssento %d liberado com sucesso!\n", numeroAssento);
             return 1;
         }
@@ -347,6 +367,7 @@ int main() {
     int opcao;
     do {
         printf("\nEscolha uma opcaoo:\n");
+        // Sugestão de Melhoria: extrair para função menuPrincipal() para reduzir responsabilidade da main.
         printf("1 - Cadastrar Passageiro\n");
         printf("2 - Cadastrar Tripulante\n");
         printf("3 - Cadastrar Voo\n");
@@ -365,6 +386,7 @@ int main() {
             case 1:
                 cadastrarPassageiro(passageiros, &numPassageiros);
                 break;
+            // Sugestão de Melhoria: as funções poderiam receber struct Sistema em vez de múltiplos parâmetros.
             case 2:
                 cadastrarTripulacao(tripulacao, &numTripulacao);
                 break;
@@ -415,4 +437,6 @@ int main() {
     } while (opcao != 0);
 
     return 0;
+
 }
+// Sugestão de Melhora: a main está bem sobrecarregada. O ideal seria ter apenas inicialização e chamada do menu.
